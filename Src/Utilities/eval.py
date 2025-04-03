@@ -135,17 +135,21 @@ class UnpackingError(Exception):
 
 
 
-async def eval_solver(stream_link,client):
-    headers = {}
-    headers["user-agent"] = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.71 Mobile Safari/537.36"
-    headers["User-Agent"] = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.71 Mobile Safari/537.36"
-    response = await client.get( stream_link,  allow_redirects=True, timeout=30, headers = headers)
-    soup = BeautifulSoup(response.text, "lxml",parse_only=SoupStrainer("script"))
-    script_all = soup.find_all("script")
-    for i in script_all:
-        if detect(i.text):
-            unpacked_code = unpack(i.text)
-            match = re.search(r'sources:\s*\[\{\s*src:\s*"([^"]+)"', unpacked_code)
-            if match:
-                m3u8_url = match.group(1)
-                return m3u8_url
+async def eval_solver(stream_link,proxies, ForwardProxy, client):
+    try:
+        headers = {}
+        headers["user-agent"] = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.71 Mobile Safari/537.36"
+        headers["User-Agent"] = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.71 Mobile Safari/537.36"
+        response = await client.get( ForwardProxy + stream_link,  allow_redirects=True, timeout=30, headers = headers, proxies = proxies, impersonate = "chrome124")
+        soup = BeautifulSoup(response.text, "lxml",parse_only=SoupStrainer("script"))
+        script_all = soup.find_all("script")
+        for i in script_all:
+            if detect(i.text):
+                unpacked_code = unpack(i.text)
+                match = re.search(r'sources:\s*\[\{\s*src:\s*"([^"]+)"', unpacked_code)
+                if match:
+                    m3u8_url = match.group(1)
+                    return m3u8_url
+    except Exception as e:
+        print("Eval solver error\n",e)
+        raise Exception("Error in eval_solver")
