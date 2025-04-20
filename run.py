@@ -231,6 +231,9 @@ async def addon_stream(request: Request,config, type, id,):
     # Split the data by comma to get proxy URL and password
         MFP_url, MFP_password = mfp_data.split(",")
         MFP_password = MFP_password[:-2]
+        
+        if(MFP_url[-1] == "/"):
+            MFP_url = MFP_url[:-1]
     # Store them in a list
         MFP_CREDENTIALS = [MFP_url, MFP_password]
         if MFP_url and MFP_password:
